@@ -1,19 +1,18 @@
 /**
  * The Listen screen: a button to start and stop the microphone, the live
- * pitch meter, and (for now) a plain-text preview of the result. The full tab
- * view replaces the preview in the next milestone.
+ * pitch meter, and the harmonica tab for the last recording.
  */
 
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PitchMeter } from '@/components/pitch-meter';
+import { TabView } from '@/components/tab-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MAX_RECORDING_SECONDS, useMelodyCapture } from '@/audio/capture';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { midiToName } from '@/dsp';
-import { buildTab, formatTab } from '@/harmonica';
+import { buildTab } from '@/harmonica';
 
 const ACCENT = '#208AEF';
 const STOP = '#E5484D';
@@ -71,10 +70,7 @@ export function ListenPanel() {
                   the harmonica.
                 </ThemedText>
               )}
-              <ThemedText style={styles.tab}>{formatTab(tab) || 'No notes found.'}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {result.notes.map((n) => midiToName(n.midi)).join(' ')}
-              </ThemedText>
+              <TabView tab={tab} />
             </ThemedView>
           )}
         </ScrollView>
@@ -117,12 +113,8 @@ const styles = StyleSheet.create({
   },
   result: {
     alignSelf: 'stretch',
-    gap: Spacing.two,
+    gap: Spacing.three,
     padding: Spacing.three,
     borderRadius: Spacing.three,
-  },
-  tab: {
-    fontSize: 22,
-    lineHeight: 34,
   },
 });

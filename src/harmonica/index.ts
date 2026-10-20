@@ -6,3 +6,4 @@ export * from './chooser';
 export * from './layout';
 export * from './tab';
 export * from './transpose';
+export * from './rhythm';

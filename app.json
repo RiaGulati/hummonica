@@ -38,7 +38,8 @@
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone to hear the melody you play or hum."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -80,43 +80,48 @@ export function detectPitch(
     return { frequency: 0, confidence: 0 };
   }
 
-  // Step 1: difference function.
-  //   d(tau) = sum over j of (x[j] - x[j + tau])^2
-  // d(tau) is close to zero when shifting by tau lines the signal up with itself.
+  // Steps 1 to 3 are computed one lag at a time, from short lags to long ones.
+  // Step 2 only needs d(1) .. d(tau), so as soon as step 3 has found its dip
+  // we can stop. For a typical note this skips most of the lags, which makes
+  // the detector several times faster without changing its result.
   const difference = new Float64Array(tauMax + 2);
+  const normalized = new Float64Array(tauMax + 2);
+  normalized[0] = 1;
+  let runningSum = 0;
+  let bestTau = -1;
+
   for (let tau = 1; tau <= tauMax + 1; tau++) {
+    // Step 1: difference function.
+    //   d(tau) = sum over j of (x[j] - x[j + tau])^2
+    // d(tau) is close to zero when shifting by tau lines the signal up with itself.
     let sum = 0;
     for (let j = 0; j < windowSize; j++) {
       const delta = frame[j] - frame[j + tau];
       sum += delta * delta;
     }
     difference[tau] = sum;
-  }
 
-  // Step 2: cumulative mean normalized difference (CMND).
-  //   d'(0)   = 1
-  //   d'(tau) = d(tau) / (average of d(1) .. d(tau))
-  // Plain d(tau) is also small for very short lags, simply because neighbouring
-  // samples are similar. Dividing by the running average removes that bias and
-  // makes the values independent of loudness, so one threshold fits all inputs.
-  const normalized = new Float64Array(tauMax + 2);
-  normalized[0] = 1;
-  let runningSum = 0;
-  for (let tau = 1; tau <= tauMax + 1; tau++) {
-    runningSum += difference[tau];
-    normalized[tau] = runningSum === 0 ? 1 : (difference[tau] * tau) / runningSum;
-  }
+    // Step 2: cumulative mean normalized difference (CMND).
+    //   d'(0)   = 1
+    //   d'(tau) = d(tau) / (average of d(1) .. d(tau))
+    // Plain d(tau) is also small for very short lags, simply because
+    // neighbouring samples are similar. Dividing by the running average removes
+    // that bias and makes the values independent of loudness, so one threshold
+    // fits all inputs.
+    runningSum += sum;
+    normalized[tau] = runningSum === 0 ? 1 : (sum * tau) / runningSum;
 
-  // Step 3: absolute threshold.
-  // Find the first lag that dips below the threshold, then keep walking while
-  // the curve still goes down so we land on the bottom of that dip.
-  let bestTau = -1;
-  for (let tau = tauMin; tau <= tauMax; tau++) {
-    if (normalized[tau] < threshold) {
-      while (tau + 1 <= tauMax && normalized[tau + 1] < normalized[tau]) {
-        tau++;
-      }
-      bestTau = tau;
+    // Step 3: absolute threshold.
+    // We want the bottom of the FIRST dip below the threshold: the first lag
+    // that is below the threshold and where the curve stops going down. Now
+    // that d'(tau) is known we can test whether the previous lag is that point.
+    const candidate = tau - 1;
+    if (
+      candidate >= tauMin &&
+      normalized[candidate] < threshold &&
+      (normalized[tau] >= normalized[candidate] || candidate === tauMax)
+    ) {
+      bestTau = candidate;
       break;
     }
   }

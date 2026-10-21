@@ -12,6 +12,9 @@
  *
  * Analyzing while recording means there is no wait at the end, and it gives us
  * a live pitch reading to show on screen.
+ *
+ * After Stop, the notes and the recording are saved automatically, so they
+ * appear in History and the recording can be shared.
  */
 
 import {
@@ -31,6 +34,7 @@ import {
   type PitchFrame,
   type TranscribeMode,
 } from '@/dsp';
+import { saveTranscription, type SavedTranscription } from '@/storage/transcriptions';
 
 /** Recording stops automatically after this many seconds. */
 export const MAX_RECORDING_SECONDS = 30;
@@ -58,6 +62,8 @@ export interface CaptureResult {
   /** Length of the recording in seconds. */
   duration: number;
   sampleRate: number;
+  /** The saved copy, or null if saving failed. */
+  saved: SavedTranscription | null;
 }
 
 /** What the screen shows while listening. */
@@ -87,6 +93,8 @@ class CaptureSession {
   private tracker: PitchTracker | MelodyTracker | null = null;
   /** Voice mode only: the frames collected so far. */
   private frames: PitchFrame[] = [];
+  /** The raw mono audio, kept so it can be saved as a WAV file. */
+  private chunks: Float32Array[] = [];
   private processingMs = 0;
   private lastUiUpdate = 0;
 
@@ -98,6 +106,7 @@ class CaptureSession {
     this.tracker ??=
       this.mode === 'song' ? new MelodyTracker(buffer.sampleRate) : new PitchTracker(buffer.sampleRate);
     const samples = toMono(new Float32Array(buffer.data), buffer.channels);
+    this.chunks.push(samples);
 
     const startedAt = performance.now();
     const frames = this.tracker.push(samples);
@@ -118,16 +127,37 @@ class CaptureSession {
     };
   }
 
-  /** Group everything heard into notes. Null if no audio arrived. */
+  /** All the audio received, joined into one buffer. */
+  private recording(): Float32Array {
+    const total = this.chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const samples = new Float32Array(total);
+    let offset = 0;
+    for (const chunk of this.chunks) {
+      samples.set(chunk, offset);
+      offset += chunk.length;
+    }
+    return samples;
+  }
+
+  /** Group everything heard into notes and save them. Null if no audio arrived. */
   finish(): CaptureResult | null {
     if (!this.tracker) return null;
     const frames = this.tracker instanceof MelodyTracker ? this.tracker.finish() : this.frames;
-    return {
+    const result = {
       notes: notesFromFrames(frames, this.tracker.hopSeconds),
       mode: this.mode,
       duration: this.audioSeconds,
       sampleRate: this.tracker.sampleRate,
     };
+
+    let saved: SavedTranscription | null = null;
+    try {
+      saved = saveTranscription(result, { samples: this.recording(), sampleRate: result.sampleRate });
+    } catch (error) {
+      // Still show the result on screen; it just will not be in History.
+      console.warn('Could not save the transcription', error);
+    }
+    return { ...result, saved };
   }
 }
 

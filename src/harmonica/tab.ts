@@ -72,3 +72,11 @@ export function formatPosition(position: HarpPosition | null): string {
 export function formatTab(tab: Tab): string {
   return tab.entries.map((entry) => formatPosition(entry.position)).join(' ');
 }
+
+/**
+ * Index of the tab entry sounding at `time` (seconds, same clock as the note
+ * start times), or -1 between notes. Used to highlight the note being played.
+ */
+export function entryIndexAt(tab: Tab, time: number): number {
+  return tab.entries.findIndex((entry) => time >= entry.start && time < entry.start + entry.duration);
+}

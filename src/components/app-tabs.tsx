@@ -20,9 +20,11 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="history">
+        <NativeTabs.Trigger.Label>History</NativeTabs.Trigger.Label>
+        {/* sf is used on iOS; the image is used on Android (SDK 57 has no Material icon prop). */}
         <NativeTabs.Trigger.Icon
+          sf="clock.arrow.circlepath"
           src={require('@/assets/images/tabIcons/explore.png')}
           renderingMode="template"
         />

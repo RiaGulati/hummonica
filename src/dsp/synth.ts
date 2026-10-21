@@ -84,3 +84,37 @@ export function renderMelody(
   }
   return output;
 }
+
+/** A note placed at an exact time, as detected from a recording. */
+export interface TimedNote {
+  midi: number;
+  /** Start time in seconds. */
+  start: number;
+  /** Length in seconds. */
+  duration: number;
+}
+
+/**
+ * Render notes at their own start times (unlike renderMelody, which plays
+ * notes back to back). Used to play a transcription back with its rhythm.
+ * Times are taken as they are, so shift them first if the first note should
+ * start right away. A short tail of silence is added at the end.
+ */
+export function renderNotes(
+  notes: TimedNote[],
+  sampleRate: number,
+  options: ToneOptions = {}
+): Float32Array {
+  const end = notes.reduce((latest, n) => Math.max(latest, n.start + n.duration), 0);
+  const output = new Float32Array(Math.round((end + 0.3) * sampleRate));
+
+  for (const note of notes) {
+    const tone = renderTone(midiToFrequency(note.midi), note.duration, sampleRate, options);
+    const offset = Math.max(0, Math.round(note.start * sampleRate));
+    // Add (not overwrite), in case two notes overlap slightly.
+    for (let i = 0; i < tone.length && offset + i < output.length; i++) {
+      output[offset + i] += tone[i];
+    }
+  }
+  return output;
+}

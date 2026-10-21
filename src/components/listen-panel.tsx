@@ -1,6 +1,6 @@
 /**
  * The Listen screen: two buttons to start the microphone (one per mode), the
- * live pitch meter, and the harmonica tab for the last recording.
+ * live pitch meter, and the last recording (saved automatically to History).
  */
 
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
@@ -10,6 +10,7 @@ import { PitchMeter } from '@/components/pitch-meter';
 import { TabView } from '@/components/tab-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { TranscriptionView } from '@/components/transcription-view';
 import { MAX_RECORDING_SECONDS, useMelodyCapture } from '@/audio/capture';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import type { TranscribeMode } from '@/dsp';
@@ -31,7 +32,6 @@ const MODE_HINTS: Record<TranscribeMode, string> = {
 export function ListenPanel() {
   const { status, mode, livePitch, elapsed, dspLoad, result, start, stop } = useMelodyCapture();
   const listening = status === 'listening';
-  const tab = result ? buildTab(result.notes) : null;
 
   return (
     <ThemedView style={styles.container}>
@@ -76,19 +76,21 @@ export function ListenPanel() {
             <ThemedText style={styles.centred}>The microphone could not be started.</ThemedText>
           )}
 
-          {result && tab && (
+          {result?.saved && (
+            <>
+              <TranscriptionView saved={result.saved} />
+              <ThemedText type="small" themeColor="textSecondary">
+                Saved to History as &quot;{result.saved.title}&quot;.
+              </ThemedText>
+            </>
+          )}
+          {result && !result.saved && (
+            // Saving failed: still show the tab, without playback or sharing.
             <ThemedView type="backgroundElement" style={styles.result}>
               <ThemedText type="smallBold">
-                {result.notes.length} notes in {result.duration.toFixed(1)} s (
-                {result.mode === 'song' ? 'song' : 'hum / play'}, {result.sampleRate} Hz)
+                {result.notes.length} notes in {result.duration.toFixed(1)} s (could not be saved)
               </ThemedText>
-              {tab.shift !== 0 && (
-                <ThemedText type="small" themeColor="textSecondary">
-                  Moved {tab.shift > 0 ? 'up' : 'down'} {Math.abs(tab.shift)} semitones to fit
-                  the harmonica.
-                </ThemedText>
-              )}
-              <TabView tab={tab} />
+              <TabView tab={buildTab(result.notes)} />
             </ThemedView>
           )}
         </ScrollView>

@@ -1,7 +1,14 @@
 /**
  * Microphone capture. Streams raw PCM samples from the mic (via expo-audio's
- * useAudioStream), feeds them to the PitchTracker as they arrive, and turns the
+ * useAudioStream), feeds them to a pitch tracker as they arrive, and turns the
  * collected frames into notes when the user stops.
+ *
+ * There are two modes:
+ *   - 'voice': PitchTracker (YIN), for one note at a time. Every frame is
+ *     final as soon as it is analyzed.
+ *   - 'song': MelodyTracker, for a melody inside recorded music. Frames from
+ *     push() are only a preview; the real melody is chosen in finish(),
+ *     because the tracker looks at the whole recording at once.
  *
  * Analyzing while recording means there is no wait at the end, and it gives us
  * a live pitch reading to show on screen.
@@ -16,7 +23,14 @@ import {
 } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
 
-import { notesFromFrames, PitchTracker, type DetectedNote, type PitchFrame } from '@/dsp';
+import {
+  MelodyTracker,
+  notesFromFrames,
+  PitchTracker,
+  type DetectedNote,
+  type PitchFrame,
+  type TranscribeMode,
+} from '@/dsp';
 
 /** Recording stops automatically after this many seconds. */
 export const MAX_RECORDING_SECONDS = 30;
@@ -39,6 +53,8 @@ export type CaptureStatus = 'idle' | 'listening' | 'permission-denied' | 'error'
 
 export interface CaptureResult {
   notes: DetectedNote[];
+  /** Which tracker produced the notes. */
+  mode: TranscribeMode;
   /** Length of the recording in seconds. */
   duration: number;
   sampleRate: number;
@@ -68,22 +84,27 @@ function toMono(samples: Float32Array, channels: number): Float32Array {
 /** Everything that belongs to one recording, from Listen to Stop. */
 class CaptureSession {
   audioSeconds = 0;
-  private tracker: PitchTracker | null = null;
+  private tracker: PitchTracker | MelodyTracker | null = null;
+  /** Voice mode only: the frames collected so far. */
   private frames: PitchFrame[] = [];
   private processingMs = 0;
   private lastUiUpdate = 0;
 
+  constructor(readonly mode: TranscribeMode) {}
+
   /** Analyze one buffer from the mic. Returns a snapshot when it is time to refresh the screen. */
   addBuffer(buffer: AudioStreamBuffer): LiveSnapshot | null {
     // The first buffer tells us the real sample rate.
-    this.tracker ??= new PitchTracker(buffer.sampleRate);
+    this.tracker ??=
+      this.mode === 'song' ? new MelodyTracker(buffer.sampleRate) : new PitchTracker(buffer.sampleRate);
     const samples = toMono(new Float32Array(buffer.data), buffer.channels);
 
     const startedAt = performance.now();
     const frames = this.tracker.push(samples);
     this.processingMs += performance.now() - startedAt;
     this.audioSeconds += samples.length / buffer.sampleRate;
-    this.frames.push(...frames);
+    // MelodyTracker keeps its own history, so only voice mode stores frames here.
+    if (this.tracker instanceof PitchTracker) this.frames.push(...frames);
 
     const now = Date.now();
     if (frames.length === 0 || now - this.lastUiUpdate < UI_UPDATE_INTERVAL_MS) {
@@ -100,8 +121,10 @@ class CaptureSession {
   /** Group everything heard into notes. Null if no audio arrived. */
   finish(): CaptureResult | null {
     if (!this.tracker) return null;
+    const frames = this.tracker instanceof MelodyTracker ? this.tracker.finish() : this.frames;
     return {
-      notes: notesFromFrames(this.frames, this.tracker.hopSeconds),
+      notes: notesFromFrames(frames, this.tracker.hopSeconds),
+      mode: this.mode,
       duration: this.audioSeconds,
       sampleRate: this.tracker.sampleRate,
     };
@@ -112,6 +135,7 @@ export function useMelodyCapture() {
   const [status, setStatus] = useState<CaptureStatus>('idle');
   const [live, setLive] = useState<LiveSnapshot | null>(null);
   const [result, setResult] = useState<CaptureResult | null>(null);
+  const [mode, setMode] = useState<TranscribeMode>('voice');
   const session = useRef<CaptureSession | null>(null);
 
   const { stream } = useAudioStream({
@@ -127,7 +151,7 @@ export function useMelodyCapture() {
     },
   });
 
-  async function start() {
+  async function start(nextMode: TranscribeMode) {
     try {
       const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
@@ -137,7 +161,8 @@ export function useMelodyCapture() {
       // iOS needs the audio session switched to recording mode.
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
 
-      session.current = new CaptureSession();
+      session.current = new CaptureSession(nextMode);
+      setMode(nextMode);
       setResult(null);
       setLive(null);
       await stream.start();
@@ -174,6 +199,8 @@ export function useMelodyCapture() {
 
   return {
     status,
+    /** Mode of the recording in progress, or of the last one. */
+    mode,
     livePitch: live?.pitch ?? null,
     elapsed: live?.elapsed ?? 0,
     dspLoad: live?.dspLoad ?? 0,

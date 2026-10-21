@@ -16,7 +16,7 @@ import {
 } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
 
-import { PitchTracker, segmentNotes, type DetectedNote, type PitchFrame } from '@/dsp';
+import { notesFromFrames, PitchTracker, type DetectedNote, type PitchFrame } from '@/dsp';
 
 /** Recording stops automatically after this many seconds. */
 export const MAX_RECORDING_SECONDS = 30;
@@ -101,7 +101,7 @@ class CaptureSession {
   finish(): CaptureResult | null {
     if (!this.tracker) return null;
     return {
-      notes: segmentNotes(this.frames, this.tracker.hopSeconds),
+      notes: notesFromFrames(this.frames, this.tracker.hopSeconds),
       duration: this.audioSeconds,
       sampleRate: this.tracker.sampleRate,
     };

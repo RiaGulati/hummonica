@@ -1,6 +1,7 @@
 /**
- * Reads harmonica tab text, as found on websites, back into notes. This lets us
- * compare what the app detected with a published tab.
+ * Reads harmonica tab text, as found on websites, back into notes. Used to
+ * compare what the app detected with a published tab, and to let the user
+ * type or paste a tab into the app.
  *
  * Accepted notations for one note (all for a C harmonica):
  *   4   +4   4↑     hole 4 blow
@@ -11,7 +12,7 @@
  * (for example "45" for holes 4 and 5 together) are not supported.
  */
 
-import { ALL_POSITIONS, type Breath } from '../harmonica/layout';
+import { ALL_POSITIONS, type Breath, type HarpPosition } from './layout';
 
 const NOTE_PATTERN = /^([+-]?)(10|[1-9])([↑↓]?)(['’′"”″]*)$/;
 const IGNORED_PATTERN = /^(\[|\]|\||x\d+|\]x\d+)$/i;
@@ -23,8 +24,11 @@ function bendCount(marks: string): number {
   return count;
 }
 
-/** Turn tab text into a list of MIDI notes. Throws on anything it cannot read. */
-export function parseTab(text: string): number[] {
+/**
+ * Turn tab text into harmonica positions (hole, blow or draw, bend), exactly
+ * as written. Throws on anything it cannot read.
+ */
+export function parseTabPositions(text: string): HarpPosition[] {
   const tokens = text
     .replace(/[[\]|]/g, ' ')
     .split(/\s+/)
@@ -42,6 +46,11 @@ export function parseTab(text: string): number[] {
       (p) => p.hole === hole && p.breath === breath && p.bend === bend
     );
     if (!position) throw new Error(`"${token}" is not a note on a C harmonica`);
-    return position.midi;
+    return position;
   });
+}
+
+/** Turn tab text into a list of MIDI notes. Throws on anything it cannot read. */
+export function parseTab(text: string): number[] {
+  return parseTabPositions(text).map((position) => position.midi);
 }

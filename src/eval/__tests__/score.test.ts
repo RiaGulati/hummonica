@@ -3,7 +3,7 @@
  */
 import { REFERENCE_TABS } from '../../fixtures/references';
 import { ODE_TO_JOY, ODE_TO_JOY_TAB } from '../../fixtures/ode-to-joy';
-import { parseTab } from '../parse-tab';
+import { parseTab } from '../../harmonica/parse-tab';
 import { scoreNotes, scoreNotesAnyKey } from '../score';
 
 describe('parseTab', () => {

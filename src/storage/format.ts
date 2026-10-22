@@ -112,6 +112,6 @@ export function parseTranscription(json: string): SavedTranscription | null {
 }
 
 /** Newest first. ISO dates sort correctly as plain text. */
-export function sortNewestFirst(items: SavedTranscription[]): SavedTranscription[] {
+export function sortNewestFirst<T extends { createdAt: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }

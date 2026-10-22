@@ -15,7 +15,7 @@ import { transcribe, type TranscribeMode } from '../../dsp';
 import { midiToName } from '../../dsp/notes';
 import { decodeWav } from '../../dsp/wav';
 import { REFERENCE_TABS } from '../../fixtures/references';
-import { parseTab } from '../parse-tab';
+import { parseTab } from '../../harmonica/parse-tab';
 import { scoreNotes, scoreNotesAnyKey, type NoteScore } from '../score';
 
 const RECORDINGS = join(__dirname, '../../../recordings');

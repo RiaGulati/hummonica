@@ -1,21 +1,22 @@
 /**
- * One saved transcription: details, playback and share buttons, and the tab.
- * Shown under the Listen buttons after a recording, and on the History
- * detail screen.
+ * One recording from History: details, playback, Save tab and Share
+ * recording, and the tab. Shown under the Listen buttons after a recording,
+ * and on the History detail screen.
  */
 
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { usePlayback, type PlaybackSource } from '@/audio/playback';
 import { shareRecording } from '@/audio/share';
-import { TabView } from '@/components/tab-view';
+import { ActionButton } from '@/components/action-button';
+import { NameDialog } from '@/components/name-dialog';
+import { TabPlayer } from '@/components/tab-player';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { buildTab, unplayableHint } from '@/harmonica';
-import { useTheme } from '@/hooks/use-theme';
 import { useTabSettings } from '@/settings/store';
+import { saveTab } from '@/storage/saved-tabs';
 import { recordingUri, type SavedTranscription } from '@/storage/transcriptions';
 
 export function TranscriptionView({ saved }: { saved: SavedTranscription }) {
@@ -24,20 +25,29 @@ export function TranscriptionView({ saved }: { saved: SavedTranscription }) {
   const tab = buildTab(saved.notes, settings);
   const hint = unplayableHint(tab, settings);
   const recording = recordingUri(saved);
-  const playback = usePlayback(tab, recording);
-  const [shareError, setShareError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [naming, setNaming] = useState(false);
 
   async function share() {
-    setShareError(null);
+    setMessage(null);
     try {
       await shareRecording(saved);
     } catch (error) {
-      setShareError(error instanceof Error ? error.message : 'Could not share the recording');
+      setMessage(error instanceof Error ? error.message : 'Could not share the recording');
     }
   }
 
-  const playLabel = (source: PlaybackSource, label: string) =>
-    playback.playing === source ? 'Pause' : label;
+  function save(name: string) {
+    setNaming(false);
+    try {
+      // The tab is saved as it looks now, with the current settings.
+      saveTab({ name, source: 'recording', tab, transcriptionId: saved.id });
+      setMessage(`Saved as "${name}" in Saved.`);
+    } catch (error) {
+      console.warn('Could not save the tab', error);
+      setMessage('The tab could not be saved.');
+    }
+  }
 
   return (
     <ThemedView type="backgroundElement" style={styles.container}>
@@ -51,54 +61,37 @@ export function TranscriptionView({ saved }: { saved: SavedTranscription }) {
           harmonica.
         </ThemedText>
       )}
-
       {hint && (
         <ThemedText type="small" themeColor="textSecondary">
           {hint}
         </ThemedText>
       )}
-
-      <View style={styles.actions}>
-        {tab.entries.length > 0 && (
-          <ActionButton label={playLabel('tab', 'Play tab')} onPress={() => playback.toggle('tab')} />
-        )}
-        {recording && (
-          <ActionButton
-            label={playLabel('recording', 'Play recording')}
-            onPress={() => playback.toggle('recording')}
-          />
-        )}
-        {recording && <ActionButton label="Share recording" onPress={share} />}
-      </View>
-      {shareError && (
-        <ThemedText type="small" themeColor="textSecondary">
-          {shareError}
+      {message && (
+        <ThemedText type="smallBold">
+          {message}
         </ThemedText>
       )}
 
-      {tab.entries.length > 0 ? (
-        <TabView tab={tab} activeIndex={playback.activeIndex} />
-      ) : (
-        <ThemedText themeColor="textSecondary">
-          No notes were found. Try again closer to the sound, or in a quieter room.
-        </ThemedText>
+      <TabPlayer
+        tab={tab}
+        recordingUri={recording}
+        actions={
+          <>
+            {tab.entries.length > 0 && <ActionButton label="Save tab" onPress={() => setNaming(true)} />}
+            {recording && <ActionButton label="Share recording" onPress={share} />}
+          </>
+        }
+      />
+
+      {naming && (
+        <NameDialog
+          title="Name this tab"
+          initialName={saved.title}
+          onCancel={() => setNaming(false)}
+          onConfirm={save}
+        />
       )}
     </ThemedView>
-  );
-}
-
-function ActionButton({ label, onPress }: { label: string; onPress: () => void }) {
-  const theme = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.actionButton,
-        { backgroundColor: theme.backgroundSelected, opacity: pressed ? 0.6 : 1 },
-      ]}>
-      <ThemedText type="smallBold">{label}</ThemedText>
-    </Pressable>
   );
 }
 
@@ -108,15 +101,5 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     padding: Spacing.three,
     borderRadius: Spacing.three,
-  },
-  actions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
-  actionButton: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderRadius: 999,
   },
 });

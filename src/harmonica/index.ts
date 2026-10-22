@@ -8,3 +8,4 @@ export * from './tab';
 export * from './transpose';
 export * from './rhythm';
 export * from './hint';
+export * from './parse-tab';

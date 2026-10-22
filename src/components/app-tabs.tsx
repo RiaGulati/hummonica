@@ -20,6 +20,24 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="songs">
+        <NativeTabs.Trigger.Label>Songs</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf="music.note.list"
+          src={require('@/assets/images/tabIcons/explore.png')}
+          renderingMode="template"
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="saved">
+        <NativeTabs.Trigger.Label>Saved</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf="bookmark"
+          src={require('@/assets/images/tabIcons/explore.png')}
+          renderingMode="template"
+        />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="history">
         <NativeTabs.Trigger.Label>History</NativeTabs.Trigger.Label>
         {/* sf is used on iOS; the image is used on Android (SDK 57 has no Material icon prop). */}

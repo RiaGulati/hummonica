@@ -2,7 +2,8 @@
  * @jest-environment node
  *
  * Evaluation on real recordings. Runs only on a computer that has the WAV
- * files in recordings/ (they are not in the repository). Prints a report:
+ * files in recordings/ (they are not in the repository). Prints a report, and
+ * fails if Song mode scores below the minimum in references.ts:
  *
  *   npx jest recordings
  */
@@ -45,6 +46,7 @@ function describePairs(score: NoteScore): string {
     it(reference.name, () => {
       const { samples, sampleRate } = decodeWav(readFileSync(join(RECORDINGS, reference.file)));
       const expected = parseTab(reference.tab);
+      let songF1 = 0;
       const lines = [`${reference.name} (${(samples.length / sampleRate).toFixed(1)} s)`];
 
       for (const mode of MODES) {
@@ -56,8 +58,10 @@ function describePairs(score: NoteScore): string {
         lines.push('    ' + describeScore('same key', exact));
         lines.push('    ' + describeScore(`best key (shift ${anyKey.shift})`, anyKey));
         if (process.env.SHOW_ALIGNMENT) lines.push(describePairs(anyKey));
+        if (mode === 'song') songF1 = anyKey.f1;
       }
       console.log(lines.join('\n'));
+      expect(songF1).toBeGreaterThanOrEqual(reference.minSongF1);
     });
   }
 });

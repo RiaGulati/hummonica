@@ -39,7 +39,12 @@ export interface MelodyTrackerOptions {
   /** FFT size. 4096 samples at 44.1 kHz separates frequencies about 11 Hz apart. */
   frameSize?: number;
   hopSize?: number;
-  /** Lowest melody note considered (MIDI). 48 = C3, below that is usually bass. */
+  /**
+   * Lowest melody note considered (MIDI). 55 = G3. Lower pitches in a song are
+   * mostly bass and chords, and choosing them caused octave errors on real
+   * recordings. Low male voices still work: their notes are found an octave up,
+   * which the harmonica tab moves back with the octave transposer.
+   */
   minMidi?: number;
   /** Highest melody note considered (MIDI). 93 = A6. */
   maxMidi?: number;
@@ -67,13 +72,13 @@ export interface MelodyTrackerOptions {
 export const DEFAULT_MELODY_TRACKER_OPTIONS: Required<MelodyTrackerOptions> = {
   frameSize: 4096,
   hopSize: 512,
-  minMidi: 48,
+  minMidi: 55,
   maxMidi: 93,
   harmonics: 8,
   harmonicDecay: 0.8,
   peakFloorDb: -40,
   candidates: 5,
-  jumpPenalty: 0.15,
+  jumpPenalty: 0.3,
   voicingRatio: 0.3,
   voicingSwitchPenalty: 0.5,
   minRms: 0.005,

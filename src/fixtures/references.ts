@@ -16,6 +16,12 @@ export interface ReferenceTab {
   tab: string;
   /** True if the recording may cover only the start of the tab. */
   partial: boolean;
+  /**
+   * Song mode must score at least this F1 (best key) on our recording, a
+   * little below the score when it was added. Catches changes that make
+   * detection worse. Recorded through the app's Share button, phone speaker.
+   */
+  minSongF1: number;
 }
 
 export const REFERENCE_TABS: ReferenceTab[] = [
@@ -28,12 +34,14 @@ export const REFERENCE_TABS: ReferenceTab[] = [
       5 -5 6 -6 6 -5 5 -5 5
       4 -5 5 -4 4`,
     partial: false,
+    minSongF1: 0.65,
   },
   {
     name: 'Pirates of the Caribbean',
     file: 'pirates-of-the-caribbean.wav',
     tab: '-4 5 -5 6 -6 6 -5 5 -5 6 -6 6 -5 6 -6 6 -5 5 -5 5 -4 5 4 -4',
     partial: false,
+    minSongF1: 0.42,
   },
   {
     name: "Blowin' in the Wind",
@@ -50,5 +58,6 @@ export const REFERENCE_TABS: ReferenceTab[] = [
       5 -5 -5 5 -4
       -4 5 5 5 -4 4`,
     partial: true,
+    minSongF1: 0.25,
   },
 ];

@@ -15,6 +15,7 @@ import { MAX_RECORDING_SECONDS, useMelodyCapture } from '@/audio/capture';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import type { TranscribeMode } from '@/dsp';
 import { buildTab } from '@/harmonica';
+import { useTabSettings } from '@/settings/store';
 
 const ACCENT = '#208AEF';
 const STOP = '#E5484D';
@@ -32,6 +33,7 @@ const MODE_HINTS: Record<TranscribeMode, string> = {
 export function ListenPanel() {
   const { status, mode, livePitch, elapsed, dspLoad, result, start, stop } = useMelodyCapture();
   const listening = status === 'listening';
+  const settings = useTabSettings();
 
   return (
     <ThemedView style={styles.container}>
@@ -90,7 +92,7 @@ export function ListenPanel() {
               <ThemedText type="smallBold">
                 {result.notes.length} notes in {result.duration.toFixed(1)} s (could not be saved)
               </ThemedText>
-              <TabView tab={buildTab(result.notes)} />
+              <TabView tab={buildTab(result.notes, settings)} />
             </ThemedView>
           )}
         </ScrollView>

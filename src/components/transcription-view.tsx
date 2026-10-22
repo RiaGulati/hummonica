@@ -13,13 +13,16 @@ import { TabView } from '@/components/tab-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { buildTab } from '@/harmonica';
+import { buildTab, unplayableHint } from '@/harmonica';
 import { useTheme } from '@/hooks/use-theme';
+import { useTabSettings } from '@/settings/store';
 import { recordingUri, type SavedTranscription } from '@/storage/transcriptions';
 
 export function TranscriptionView({ saved }: { saved: SavedTranscription }) {
   // The tab is rebuilt from the saved notes, so it always uses the current settings.
-  const tab = buildTab(saved.notes);
+  const settings = useTabSettings();
+  const tab = buildTab(saved.notes, settings);
+  const hint = unplayableHint(tab, settings);
   const recording = recordingUri(saved);
   const playback = usePlayback(tab, recording);
   const [shareError, setShareError] = useState<string | null>(null);
@@ -46,6 +49,12 @@ export function TranscriptionView({ saved }: { saved: SavedTranscription }) {
         <ThemedText type="small" themeColor="textSecondary">
           Moved {tab.shift > 0 ? 'up' : 'down'} {Math.abs(tab.shift)} semitones to fit the
           harmonica.
+        </ThemedText>
+      )}
+
+      {hint && (
+        <ThemedText type="small" themeColor="textSecondary">
+          {hint}
         </ThemedText>
       )}
 

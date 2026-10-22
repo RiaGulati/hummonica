@@ -11,20 +11,22 @@ import { FlatList, Pressable, StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { buildTab, formatPosition } from '@/harmonica';
+import { buildTab, formatPosition, type TabSettings } from '@/harmonica';
+import { useTabSettings } from '@/settings/store';
 import { listTranscriptions, type SavedTranscription } from '@/storage/transcriptions';
 
 /** Number of tab symbols shown as a preview in each row. */
 const PREVIEW_LENGTH = 10;
 
-function preview(saved: SavedTranscription): string {
-  const entries = buildTab(saved.notes).entries;
+function preview(saved: SavedTranscription, settings: TabSettings): string {
+  const entries = buildTab(saved.notes, settings).entries;
   const symbols = entries.slice(0, PREVIEW_LENGTH).map((entry) => formatPosition(entry.position));
   return symbols.join(' ') + (entries.length > PREVIEW_LENGTH ? ' …' : '');
 }
 
 export function HistoryList() {
   const [items, setItems] = useState<SavedTranscription[]>([]);
+  const settings = useTabSettings();
 
   useFocusEffect(
     useCallback(() => {
@@ -60,7 +62,7 @@ export function HistoryList() {
                 {item.notes.length} notes · {item.duration.toFixed(1)} s ·{' '}
                 {item.mode === 'song' ? 'song' : 'hum / play'}
               </ThemedText>
-              {item.notes.length > 0 && <ThemedText numberOfLines={1}>{preview(item)}</ThemedText>}
+              {item.notes.length > 0 && <ThemedText numberOfLines={1}>{preview(item, settings)}</ThemedText>}
             </ThemedView>
           </Pressable>
         )}

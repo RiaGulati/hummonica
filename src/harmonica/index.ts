@@ -7,3 +7,4 @@ export * from './layout';
 export * from './tab';
 export * from './transpose';
 export * from './rhythm';
+export * from './hint';

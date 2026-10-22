@@ -144,7 +144,7 @@ class CaptureSession {
     if (!this.tracker) return null;
     const frames = this.tracker instanceof MelodyTracker ? this.tracker.finish() : this.frames;
     const result = {
-      notes: notesFromFrames(frames, this.tracker.hopSeconds),
+      notes: notesFromFrames(frames, this.tracker.hopSeconds, { mode: this.mode }),
       mode: this.mode,
       duration: this.audioSeconds,
       sampleRate: this.tracker.sampleRate,

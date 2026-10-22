@@ -34,14 +34,14 @@ export const REFERENCE_TABS: ReferenceTab[] = [
       5 -5 6 -6 6 -5 5 -5 5
       4 -5 5 -4 4`,
     partial: false,
-    minSongF1: 0.65,
+    minSongF1: 0.72,
   },
   {
     name: 'Pirates of the Caribbean',
     file: 'pirates-of-the-caribbean.wav',
     tab: '-4 5 -5 6 -6 6 -5 5 -5 6 -6 6 -5 6 -6 6 -5 5 -5 5 -4 5 4 -4',
     partial: false,
-    minSongF1: 0.42,
+    minSongF1: 0.47,
   },
   {
     name: "Blowin' in the Wind",
@@ -58,6 +58,6 @@ export const REFERENCE_TABS: ReferenceTab[] = [
       5 -5 -5 5 -4
       -4 5 5 5 -4 4`,
     partial: true,
-    minSongF1: 0.25,
+    minSongF1: 0.33,
   },
 ];

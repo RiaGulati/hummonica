@@ -52,6 +52,11 @@ export interface MelodyTrackerOptions {
   harmonics?: number;
   /** Weight of each harmonic compared with the previous one. */
   harmonicDecay?: number;
+  /**
+   * Each peak adds magnitude ^ this exponent. Below 1 it compresses: one very
+   * loud partial counts less, many medium harmonics count more.
+   */
+  magnitudeExponent?: number;
   /** Ignore spectral peaks this many dB below the loudest peak of the frame. */
   peakFloorDb?: number;
   /** Candidate pitches kept per frame. */
@@ -76,6 +81,7 @@ export const DEFAULT_MELODY_TRACKER_OPTIONS: Required<MelodyTrackerOptions> = {
   maxMidi: 93,
   harmonics: 8,
   harmonicDecay: 0.8,
+  magnitudeExponent: 1,
   peakFloorDb: -40,
   candidates: 5,
   jumpPenalty: 0.3,
@@ -141,7 +147,7 @@ function salienceCandidates(peaks: SpectralPeak[], opts: Required<MelodyTrackerO
   const salience = new Float64Array(binCount);
 
   for (const peak of peaks) {
-    let weight = peak.magnitude;
+    let weight = Math.pow(peak.magnitude, opts.magnitudeExponent);
     for (let h = 1; h <= opts.harmonics; h++, weight *= opts.harmonicDecay) {
       // If this peak is harmonic number h, the note's pitch is frequency / h.
       const pitch = frequencyToMidi(peak.frequency / h);

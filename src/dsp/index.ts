@@ -4,6 +4,7 @@
  */
 
 import { MelodyTracker, type MelodyTrackerOptions } from './melody';
+import { removeOutlierNotes, type OutlierOptions } from './outliers';
 import { segmentNotes, type DetectedNote, type SegmentOptions } from './segment';
 import { PitchTracker, type PitchFrame, type TrackerOptions } from './tracker';
 import { correctTuning } from './tuning';
@@ -11,6 +12,7 @@ import { correctTuning } from './tuning';
 export * from './fft';
 export * from './melody';
 export * from './notes';
+export * from './outliers';
 export * from './segment';
 export * from './synth';
 export * from './tracker';
@@ -33,9 +35,19 @@ export interface TranscribeOptions {
   /** Options for the melody tracker ('song' mode). */
   melody?: MelodyTrackerOptions;
   segment?: SegmentOptions;
+  /** Song mode: options for removing isolated notes far from the melody. */
+  outliers?: OutlierOptions;
   /** Correct for the singer's tuning offset and drift. On by default. */
   correctTuning?: boolean;
 }
+
+/**
+ * Segmentation settings that differ in Song mode. There the "loudness" of a
+ * frame is the salience of the melody (see melody.ts), which wobbles more
+ * than the volume of a single voice, so a bigger jump is needed to count as
+ * a re-attacked note. 9 dB improved all three real test recordings.
+ */
+export const SONG_SEGMENT_OPTIONS: SegmentOptions = { energyOnsetDb: 9 };
 
 /** Second half of the pipeline: pitch frames in, notes out. */
 export function notesFromFrames(
@@ -43,7 +55,10 @@ export function notesFromFrames(
   hopSeconds: number,
   options: TranscribeOptions = {}
 ): DetectedNote[] {
-  const notes = segmentNotes(frames, hopSeconds, options.segment);
+  const segment = options.mode === 'song' ? { ...SONG_SEGMENT_OPTIONS, ...options.segment } : options.segment;
+  let notes = segmentNotes(frames, hopSeconds, segment);
+  // In a song, other instruments cause isolated stray notes. A single voice does not.
+  if (options.mode === 'song') notes = removeOutlierNotes(notes, options.outliers);
   return options.correctTuning === false ? notes : correctTuning(notes);
 }
 

@@ -2,10 +2,12 @@
  * Playback of a transcription, with the current note highlighted.
  *
  * Two things can be played:
- *   - 'tab': the notes of the tab, synthesized with a harmonica-like voice
- *     (reed.ts), so you can hear what you are about to play. The audio is
- *     generated in TypeScript, encoded as WAV (wav.ts) and written to the
- *     cache folder, because the audio player plays files.
+ *   - 'tab': the notes of the tab, played with recordings of a real
+ *     harmonica (sampler.ts), so you can hear what you are about to play. If
+ *     the samples cannot be loaded, a synthesized reed voice (reed.ts) is
+ *     used instead. The audio is generated in TypeScript, encoded as WAV
+ *     (wav.ts) and written to the cache folder, because the audio player
+ *     plays files.
  *   - 'recording': the original recording, to compare the tab with what was
  *     actually heard.
  *
@@ -19,14 +21,17 @@ import { File, Paths } from 'expo-file-system';
 import { useState } from 'react';
 
 import { renderReedNote } from '@/dsp/reed';
-import { renderNotes } from '@/dsp/synth';
+import { renderSampledNote } from '@/dsp/sampler';
+import { renderNotes, type NoteVoice } from '@/dsp/synth';
 import { encodeWav } from '@/dsp/wav';
 import { entryIndexAt, type Tab } from '@/harmonica';
 
+import { loadHarmonicaSamples } from './harmonica-samples';
+
 export type PlaybackSource = 'tab' | 'recording';
 
-/** High enough for the reed's bright harmonics (up to 8 kHz), lower than the mic to keep files small. */
-const SYNTH_SAMPLE_RATE = 32000;
+/** The rate of the harmonica samples, so they play back without losing quality. */
+const PLAYBACK_SAMPLE_RATE = 44100;
 /** Silence before the first note, so playback does not start abruptly. */
 const LEAD_IN_SECONDS = 0.2;
 
@@ -34,11 +39,22 @@ const LEAD_IN_SECONDS = 0.2;
 let synthCounter = 0;
 let lastSynthFile: File | null = null;
 
+/** The real harmonica samples, or the synthesized reed voice if they cannot be loaded. */
+async function harmonicaVoice(): Promise<NoteVoice> {
+  try {
+    const bank = await loadHarmonicaSamples();
+    return (frequency, duration, rate) => renderSampledNote(bank, frequency, duration, rate);
+  } catch (error) {
+    console.warn('Harmonica samples not available, using the synthesized voice', error);
+    return renderReedNote;
+  }
+}
+
 /**
- * Synthesize the tab and write it to the cache. Returns the file address and
+ * Render the tab and write it to the cache. Returns the file address and
  * the time offset: note time = player time + offset.
  */
-function writeTabAudio(tab: Tab): { uri: string; offset: number } {
+async function writeTabAudio(tab: Tab): Promise<{ uri: string; offset: number }> {
   const firstStart = tab.entries[0]?.start ?? 0;
   const offset = firstStart - LEAD_IN_SECONDS;
   const notes = tab.entries.map((entry) => ({
@@ -46,12 +62,12 @@ function writeTabAudio(tab: Tab): { uri: string; offset: number } {
     start: entry.start - offset,
     duration: entry.duration,
   }));
-  const samples = renderNotes(notes, SYNTH_SAMPLE_RATE, renderReedNote);
+  const samples = renderNotes(notes, PLAYBACK_SAMPLE_RATE, await harmonicaVoice());
 
   if (lastSynthFile?.exists) lastSynthFile.delete();
   const file = new File(Paths.cache, `tab-playback-${++synthCounter}.wav`);
   file.create({ overwrite: true });
-  file.write(encodeWav(samples, SYNTH_SAMPLE_RATE));
+  file.write(encodeWav(samples, PLAYBACK_SAMPLE_RATE));
   lastSynthFile = file;
   return { uri: file.uri, offset };
 }
@@ -65,7 +81,7 @@ export function usePlayback(tab: Tab, recordingUri: string | null) {
   const atEnd = status.duration > 0 && status.currentTime >= status.duration - 0.05;
 
   /** Play, pause or resume the given source (the button toggles). */
-  function toggle(next: PlaybackSource) {
+  async function toggle(next: PlaybackSource) {
     if (source === next) {
       if (status.playing) {
         player.pause();
@@ -79,7 +95,12 @@ export function usePlayback(tab: Tab, recordingUri: string | null) {
     let uri: string | null;
     let nextOffset = 0;
     if (next === 'tab') {
-      ({ uri, offset: nextOffset } = writeTabAudio(tab));
+      try {
+        ({ uri, offset: nextOffset } = await writeTabAudio(tab));
+      } catch (error) {
+        console.warn('Could not prepare the tab audio', error);
+        return;
+      }
     } else {
       uri = recordingUri;
     }

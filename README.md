@@ -54,3 +54,11 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Credits
+
+- Tab playback uses the harmonica samples "Harmonica multisample notes" by
+  j_e_f_f_g on [Freesound](https://freesound.org/people/j_e_f_f_g/packs/20090/),
+  released under Creative Commons 0 (public domain). Details in
+  `assets/harmonica/LICENSE.txt`. To rebuild them from the original pack, run
+  `node scripts/prepare-harmonica-samples.mts <unzipped pack folder>`.

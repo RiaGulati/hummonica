@@ -1,0 +1,15 @@
+Harmonica samples used for tab playback.
+
+Source: "Harmonica multisample notes" by j_e_f_f_g on Freesound
+https://freesound.org/people/j_e_f_f_g/packs/20090/
+License: Creative Commons 0 (public domain)
+http://creativecommons.org/publicdomain/zero/1.0/
+
+Sounds used (converted to mono, trimmed after the loop, loop seam
+cross-faded and levels matched by scripts/prepare-harmonica-samples.mts):
+  4_b   B4   https://freesound.org/s/352731/  release https://freesound.org/s/352730/
+  5_e   E5   https://freesound.org/s/352735/  release https://freesound.org/s/352734/
+  5_ab  G#5  https://freesound.org/s/352729/  release https://freesound.org/s/352728/
+  6_c   C6   https://freesound.org/s/352737/  release https://freesound.org/s/352736/
+  6_e   E6   https://freesound.org/s/352740/  release https://freesound.org/s/352739/
+"6_ab" was not used: its pitch measures as G#5, a duplicate of 5_ab.

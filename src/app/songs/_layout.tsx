@@ -5,6 +5,7 @@ export default function SongsLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ title: 'Songs' }} />
       <Stack.Screen name="[id]" options={{ title: '' }} />
+      <Stack.Screen name="online/[id]" options={{ title: '' }} />
     </Stack>
   );
 }

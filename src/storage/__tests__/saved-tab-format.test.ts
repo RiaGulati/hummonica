@@ -25,6 +25,21 @@ describe('saved tab format', () => {
     expect(parseSavedTab(JSON.stringify({ ...saved, entries: [{ midi: 72 }] }))).toBeNull();
   });
 
+  it('keeps the website text and link of an online tab', () => {
+    const saved = createSavedTab(
+      { name: 'Web', source: 'online', tab, sourceText: '4 -4\nwords', sourceUrl: 'https://example.com/t' },
+      'id3',
+      DATE
+    );
+    expect(parseSavedTab(JSON.stringify(saved))).toMatchObject({ sourceText: '4 -4\nwords', sourceUrl: 'https://example.com/t' });
+  });
+
+  it('still reads files saved before the website fields existed', () => {
+    const { sourceText, sourceUrl, ...older } = createSavedTab({ name: 'Old', source: 'typed', tab }, 'id4', DATE);
+    expect([sourceText, sourceUrl]).toEqual([null, null]);
+    expect(parseSavedTab(JSON.stringify(older))).toMatchObject({ name: 'Old', sourceText: null, sourceUrl: null });
+  });
+
   it('keeps the holes of a typed tab exactly as written', () => {
     // G4 can be 2 draw or 3 blow; the typed choice must be kept.
     const typed = tabFromPositions(parseTabPositions('-2 3 4'));

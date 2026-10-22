@@ -12,7 +12,7 @@ import type { HarpPosition, Tab, TabEntry } from '../harmonica';
 export const SAVED_TAB_VERSION = 1;
 
 /** Where a saved tab came from. */
-export type SavedTabSource = 'recording' | 'library' | 'typed';
+export type SavedTabSource = 'recording' | 'library' | 'typed' | 'online';
 
 export interface SavedTab {
   version: number;
@@ -28,6 +28,10 @@ export interface SavedTab {
   transcriptionId: string | null;
   /** For a library song: its id. */
   songId: string | null;
+  /** For a tab from a website: the tab text as written there (with lyrics). */
+  sourceText: string | null;
+  /** For a tab from a website: the page it came from. */
+  sourceUrl: string | null;
 }
 
 export interface NewSavedTab {
@@ -36,6 +40,8 @@ export interface NewSavedTab {
   tab: Tab;
   transcriptionId?: string | null;
   songId?: string | null;
+  sourceText?: string | null;
+  sourceUrl?: string | null;
 }
 
 export function createSavedTab(input: NewSavedTab, id: string, date: Date): SavedTab {
@@ -49,6 +55,8 @@ export function createSavedTab(input: NewSavedTab, id: string, date: Date): Save
     entries: input.tab.entries,
     transcriptionId: input.transcriptionId ?? null,
     songId: input.songId ?? null,
+    sourceText: input.sourceText ?? null,
+    sourceUrl: input.sourceUrl ?? null,
   };
 }
 
@@ -83,18 +91,22 @@ export function parseSavedTab(json: string): SavedTab | null {
     return null;
   }
   if (typeof data !== 'object' || data === null) return null;
-  const t = data as Record<string, unknown>;
+  // Fields added later may be missing from older files.
+  const t: Record<string, unknown> = { sourceText: null, sourceUrl: null, ...data };
+  const optionalText = (value: unknown) => value === null || typeof value === 'string';
   const valid =
     t.version === SAVED_TAB_VERSION &&
     typeof t.id === 'string' &&
     typeof t.name === 'string' &&
     typeof t.createdAt === 'string' &&
-    (t.source === 'recording' || t.source === 'library' || t.source === 'typed') &&
+    ['recording', 'library', 'typed', 'online'].includes(t.source as string) &&
     isNumber(t.shift) &&
     Array.isArray(t.entries) &&
     t.entries.every(isEntry) &&
-    (t.transcriptionId === null || typeof t.transcriptionId === 'string') &&
-    (t.songId === null || typeof t.songId === 'string');
+    optionalText(t.transcriptionId) &&
+    optionalText(t.songId) &&
+    optionalText(t.sourceText) &&
+    optionalText(t.sourceUrl);
   return valid ? (t as unknown as SavedTab) : null;
 }
 

@@ -20,6 +20,7 @@ const SOURCE_LABELS: Record<SavedTabSource, string> = {
   recording: 'From a recording',
   library: 'From the song library',
   typed: 'Typed in',
+  online: 'From harmonica.com',
 };
 
 function preview(saved: SavedTab): string {

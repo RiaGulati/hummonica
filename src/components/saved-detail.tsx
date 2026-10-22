@@ -1,12 +1,14 @@
 /** One saved tab: playback, Rename and Delete. */
 
 import { router, Stack } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 
 import { ActionButton } from '@/components/action-button';
 import { NameDialog } from '@/components/name-dialog';
 import { TabPlayer } from '@/components/tab-player';
+import { TabTextBlock } from '@/components/tab-text-block';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -77,6 +79,18 @@ export function SavedDetail({ id }: { id: string }) {
             }
           />
         </ThemedView>
+        {saved.sourceText && (
+          <>
+            <ThemedText type="smallBold">Tab as written</ThemedText>
+            <TabTextBlock text={saved.sourceText} />
+          </>
+        )}
+        {saved.sourceUrl && (
+          <ActionButton
+            label="Open the original page"
+            onPress={() => WebBrowser.openBrowserAsync(saved.sourceUrl!)}
+          />
+        )}
       </ScrollView>
       {renaming && (
         <NameDialog
@@ -99,6 +113,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
+    gap: Spacing.three,
     padding: Spacing.three,
     paddingBottom: BottomTabInset + Spacing.three,
   },

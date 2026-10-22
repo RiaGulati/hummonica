@@ -94,22 +94,28 @@ export interface TimedNote {
   duration: number;
 }
 
+/** Makes the sound of one note: (frequency in Hz, length in seconds, sample rate) => samples. */
+export type NoteVoice = (frequency: number, durationSeconds: number, sampleRate: number) => Float32Array;
+
 /**
  * Render notes at their own start times (unlike renderMelody, which plays
  * notes back to back). Used to play a transcription back with its rhythm.
  * Times are taken as they are, so shift them first if the first note should
  * start right away. A short tail of silence is added at the end.
+ *
+ * `voice` makes each note's sound: a plain tone by default, or for example
+ * renderReedNote (reed.ts) for a harmonica-like sound.
  */
 export function renderNotes(
   notes: TimedNote[],
   sampleRate: number,
-  options: ToneOptions = {}
+  voice: NoteVoice = (frequency, duration, rate) => renderTone(frequency, duration, rate)
 ): Float32Array {
   const end = notes.reduce((latest, n) => Math.max(latest, n.start + n.duration), 0);
   const output = new Float32Array(Math.round((end + 0.3) * sampleRate));
 
   for (const note of notes) {
-    const tone = renderTone(midiToFrequency(note.midi), note.duration, sampleRate, options);
+    const tone = voice(midiToFrequency(note.midi), note.duration, sampleRate);
     const offset = Math.max(0, Math.round(note.start * sampleRate));
     // Add (not overwrite), in case two notes overlap slightly.
     for (let i = 0; i < tone.length && offset + i < output.length; i++) {

@@ -3,7 +3,8 @@
  */
 import { buildTab, entryIndexAt } from '../../harmonica/tab';
 import { transcribe } from '../index';
-import { renderNotes } from '../synth';
+import { renderReedNote, reedHarmonicStrength } from '../reed';
+import { renderNotes, renderTone } from '../synth';
 
 const SAMPLE_RATE = 22050;
 
@@ -24,8 +25,31 @@ describe('renderNotes', () => {
   });
 
   it('can be transcribed back into the same notes', () => {
-    const audio = renderNotes(notes, SAMPLE_RATE, { harmonics: [1, 0.5] });
+    const audio = renderNotes(notes, SAMPLE_RATE, (f, d, rate) => renderTone(f, d, rate, { harmonics: [1, 0.5] }));
     expect(transcribe(audio, SAMPLE_RATE).map((n) => n.midi)).toEqual([72, 76]);
+  });
+
+  it('with the harmonica voice, still plays the right notes', () => {
+    const audio = renderNotes(notes, SAMPLE_RATE, renderReedNote);
+    expect(transcribe(audio, SAMPLE_RATE).map((n) => n.midi)).toEqual([72, 76]);
+  });
+});
+
+describe('harmonica voice', () => {
+  it('boosts the harmonics near 1.6 kHz compared with a plain buzz (1 / n)', () => {
+    // For C5 (523 Hz): the 3rd harmonic is at 1570 Hz, the 8th at 4186 Hz.
+    const f = 523.25;
+    const boost = (n: number) => reedHarmonicStrength(n, f) * n;
+    expect(boost(3)).toBeGreaterThan(3);
+    expect(boost(8)).toBeLessThan(1.5);
+  });
+
+  it('fades in and out without clipping', () => {
+    const note = renderReedNote(523.25, 0.5, SAMPLE_RATE, 0.4);
+    const peak = Math.max(...note.map(Math.abs));
+    expect(peak).toBeLessThanOrEqual(0.45);
+    expect(Math.abs(note[0])).toBeLessThan(0.01);
+    expect(Math.abs(note[note.length - 1])).toBeLessThan(0.01);
   });
 });
 

@@ -7,7 +7,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Signal, Spacing } from '@/constants/theme';
 import { midiToName, nearestNote, type PitchFrame } from '@/dsp';
 import { formatPosition, positionsFor } from '@/harmonica';
 import { useTheme } from '@/hooks/use-theme';
@@ -41,7 +41,7 @@ export function PitchMeter({ frame }: { frame: PitchFrame | null }) {
           <View
             style={[
               styles.needle,
-              { left: `${needle}%`, backgroundColor: inTune ? '#2FA84F' : '#E5484D' },
+              { left: `${needle}%`, backgroundColor: inTune ? Signal.good : Signal.warning },
             ]}
           />
         )}

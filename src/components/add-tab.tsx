@@ -13,7 +13,7 @@ import { MAX_NAME_LENGTH } from '@/components/name-dialog';
 import { TabPlayer } from '@/components/tab-player';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Signal, Spacing } from '@/constants/theme';
 import { parseTabPositions, type Tab } from '@/harmonica';
 import { useTheme } from '@/hooks/use-theme';
 import { tabFromPositions } from '@/storage/saved-tab-format';
@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.three,
   },
   input: {
+    fontFamily: Fonts.mono,
     fontSize: 17,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   error: {
-    color: '#E5484D',
+    color: Signal.warning,
   },
   preview: {
     gap: Spacing.three,

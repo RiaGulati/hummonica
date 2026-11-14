@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.two,
   },
   text: {
-    fontFamily: Fonts?.mono,
+    fontFamily: Fonts.mono,
     fontSize: 14,
     lineHeight: 20,
   },

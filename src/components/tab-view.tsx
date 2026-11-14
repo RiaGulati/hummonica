@@ -15,7 +15,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Signal, Spacing } from '@/constants/theme';
 import { midiToName } from '@/dsp';
 import {
   classifyLengths,
@@ -37,8 +37,9 @@ const GAP_AFTER: Record<NoteLength, number> = { short: 4, medium: 12, long: 26 }
 /** Width of the length bar under a note, in points at 100% zoom. */
 const BAR_WIDTH: Record<NoteLength, number> = { short: 8, medium: 20, long: 40 };
 
-const UNPLAYABLE_COLOR = '#E5484D';
-const ACTIVE_BACKGROUND = '#208AEF55';
+const UNPLAYABLE_COLOR = Signal.warning;
+/** The note being played: the brand peach. */
+const ACTIVE_BACKGROUND = '#ffc396';
 
 function clampZoom(zoom: number): number {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   symbol: {
-    fontWeight: 600,
+    fontFamily: Fonts.monoMedium,
     fontVariant: ['tabular-nums'],
   },
   lengthBar: {

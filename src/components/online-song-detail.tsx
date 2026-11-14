@@ -80,14 +80,14 @@ export function OnlineSongDetail({ id, title }: { id: number; title?: string }) 
             </ThemedText>
           )}
           {message && <ThemedText type="smallBold">{message}</ThemedText>}
-          <TabPlayer tab={tab} actions={<ActionButton label="Save tab" onPress={() => setNaming(true)} />} />
+          <TabPlayer tab={tab} actions={<ActionButton secondary label="Save tab" onPress={() => setNaming(true)} />} />
         </ThemedView>
 
         <ThemedText type="smallBold">Tab as written</ThemedText>
         {page.blocks.map((block, i) => (
           <TabTextBlock key={i} text={block} />
         ))}
-        <ActionButton label="Open on harmonica.com" onPress={() => WebBrowser.openBrowserAsync(page.url)} />
+        <ActionButton secondary label="Open on harmonica.com" onPress={() => WebBrowser.openBrowserAsync(page.url)} />
       </ScrollView>
       {naming && (
         <NameDialog

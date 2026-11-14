@@ -53,7 +53,7 @@ export function SongDetail({ id }: { id: string }) {
             {song.artist} · {tab.entries.length} notes · C harmonica
           </ThemedText>
           {message && <ThemedText type="smallBold">{message}</ThemedText>}
-          <TabPlayer tab={tab} actions={<ActionButton label="Save tab" onPress={() => setNaming(true)} />} />
+          <TabPlayer tab={tab} actions={<ActionButton secondary label="Save tab" onPress={() => setNaming(true)} />} />
         </ThemedView>
       </ScrollView>
       {naming && (

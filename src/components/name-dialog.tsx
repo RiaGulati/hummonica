@@ -13,7 +13,7 @@ import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ActionButton } from '@/components/action-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /** Longest name allowed, so names fit in lists. */
@@ -56,7 +56,7 @@ export function NameDialog({
               style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
             />
             <View style={styles.buttons}>
-              <ActionButton label="Cancel" onPress={onCancel} />
+              <ActionButton secondary label="Cancel" onPress={onCancel} />
               <ActionButton label={confirmLabel} disabled={!trimmed} onPress={() => onConfirm(trimmed)} />
             </View>
           </ThemedView>
@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
   },
   input: {
+    fontFamily: Fonts.mono,
     fontSize: 17,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,

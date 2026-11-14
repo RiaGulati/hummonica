@@ -10,10 +10,10 @@ import { Alert, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { TranscriptionView } from '@/components/transcription-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Signal, Spacing } from '@/constants/theme';
 import { deleteTranscription, loadTranscription } from '@/storage/transcriptions';
 
-const DELETE = '#E5484D';
+const DELETE = Signal.warning;
 
 export function TranscriptionDetail({ id }: { id: string }) {
   // Read the file once, when the screen opens.
@@ -82,6 +82,6 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: DELETE,
-    fontWeight: 600,
+    fontFamily: Fonts.monoMedium,
   },
 });

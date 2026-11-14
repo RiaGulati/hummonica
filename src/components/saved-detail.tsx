@@ -73,8 +73,8 @@ export function SavedDetail({ id }: { id: string }) {
             recordingUri={recording}
             actions={
               <>
-                <ActionButton label="Rename" onPress={() => setRenaming(true)} />
-                <ActionButton label="Delete" onPress={confirmDelete} />
+                <ActionButton secondary label="Rename" onPress={() => setRenaming(true)} />
+                <ActionButton secondary label="Delete" onPress={confirmDelete} />
               </>
             }
           />
@@ -87,6 +87,7 @@ export function SavedDetail({ id }: { id: string }) {
         )}
         {saved.sourceUrl && (
           <ActionButton
+            secondary
             label="Open the original page"
             onPress={() => WebBrowser.openBrowserAsync(saved.sourceUrl!)}
           />

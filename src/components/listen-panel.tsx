@@ -12,13 +12,12 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { TranscriptionView } from '@/components/transcription-view';
 import { MAX_RECORDING_SECONDS, useMelodyCapture } from '@/audio/capture';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Signal, Spacing } from '@/constants/theme';
 import type { TranscribeMode } from '@/dsp';
 import { buildTab } from '@/harmonica';
+import { useTheme } from '@/hooks/use-theme';
 import { useTabSettings } from '@/settings/store';
 
-const ACCENT = '#208AEF';
-const STOP = '#E5484D';
 /** The other mode's button while recording: visible but not pressable. */
 const DISABLED = '#9BA1A6';
 
@@ -36,6 +35,7 @@ export function ListenPanel() {
   const { status, mode, livePitch, elapsed, dspLoad, result, start, stop } = useMelodyCapture();
   const listening = status === 'listening';
   const settings = useTabSettings();
+  const theme = useTheme();
 
   return (
     <ThemedView style={styles.container}>
@@ -65,11 +65,14 @@ export function ListenPanel() {
                   style={({ pressed }) => [
                     styles.button,
                     {
-                      backgroundColor: isStop ? STOP : disabled ? DISABLED : ACCENT,
+                      backgroundColor: isStop ? Signal.stop : disabled ? DISABLED : theme.accent,
                       opacity: disabled ? 0.5 : pressed ? 0.7 : 1,
                     },
                   ]}>
-                  <ThemedText style={styles.buttonText}>{isStop ? 'Stop' : button.label}</ThemedText>
+                  <ThemedText
+                    style={[styles.buttonText, { color: isStop || disabled ? '#ffffff' : theme.onAccent }]}>
+                    {isStop ? 'Stop' : button.label}
+                  </ThemedText>
                 </Pressable>
               );
             })}
@@ -147,9 +150,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   buttonText: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: 700,
+    fontFamily: Fonts.monoBold,
+    fontSize: 18,
+    lineHeight: 24,
   },
   result: {
     alignSelf: 'stretch',

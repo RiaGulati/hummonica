@@ -35,6 +35,7 @@ export function TabPlayer({
         )}
         {recordingUri && (
           <ActionButton
+            secondary
             label={playLabel('recording', 'Play recording')}
             onPress={() => playback.toggle('recording')}
           />

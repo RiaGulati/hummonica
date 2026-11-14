@@ -1,3 +1,11 @@
+/**
+ * The web version's navigation: a pill-shaped bar at the top with the
+ * Hummonica logo (back to the landing page) and the app's five tabs. It sits
+ * above the screens rather than over them, and is hidden on the landing page,
+ * which has its own header.
+ */
+
+import { usePathname } from 'expo-router';
 import {
   Tabs,
   TabList,
@@ -6,22 +14,24 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet, useWindowDimensions } from 'react-native';
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
-import { ExternalLink } from './external-link';
+import { HummonicaMark } from './hummonica-mark';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 export default function AppTabs() {
+  const onLanding = usePathname() === '/';
   return (
     <Tabs>
-      <TabSlot style={{ height: '100%' }} />
-      <TabList asChild>
+      <TabList asChild style={onLanding ? styles.hidden : undefined}>
         <CustomTabList>
-          <TabTrigger name="home" href="/" asChild>
+          {/* The landing page is a route too, but it has no button: the logo leads there. */}
+          <TabTrigger name="index" href="/" style={styles.hidden} />
+          <TabTrigger name="listen" href="/listen" asChild>
             <TabButton>Listen</TabButton>
           </TabTrigger>
           <TabTrigger name="songs" href="/songs" asChild>
@@ -38,59 +48,70 @@ export default function AppTabs() {
           </TabTrigger>
         </CustomTabList>
       </TabList>
+      {/* Below the bar, not under it, so screen headers and titles stay visible. */}
+      <TabSlot style={styles.slot} />
     </Tabs>
   );
 }
 
+/** Below this width the bar drops the logo's name and tightens the tabs, so all five fit on a phone. */
+const COMPACT_WIDTH = 640;
+
 export function TabButton({ children, isFocused, ref, ...props }: TabTriggerSlotProps) {
+  const theme = useTheme();
+  const compact = useWindowDimensions().width < COMPACT_WIDTH;
   return (
     <Pressable
       {...props}
       // TabTriggerSlotProps types `ref` loosely; it's forwarded to the Pressable's host view.
       ref={ref as React.Ref<React.ComponentRef<typeof Pressable>>}
       style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView
-        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
+      <View
+        style={[
+          styles.tabButtonView,
+          compact && styles.tabButtonCompact,
+          isFocused && { backgroundColor: theme.accent },
+        ]}>
+        <ThemedText
+          type="small"
+          style={{
+            color: isFocused ? theme.onAccent : theme.text,
+            fontFamily: isFocused ? Fonts.monoMedium : Fonts.mono,
+            fontSize: compact ? 12 : 14,
+          }}>
           {children}
         </ThemedText>
-      </ThemedView>
+      </View>
     </Pressable>
   );
 }
 
 export function CustomTabList(props: TabListProps) {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
-
+  const compact = useWindowDimensions().width < COMPACT_WIDTH;
   return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          Expo Starter
-        </ThemedText>
-
+    // Our layout goes last: TabList's default style would otherwise left-align the bar.
+    <View {...props} style={[props.style, styles.tabListContainer, compact && styles.tabListCompact]}>
+      <ThemedView type="backgroundElement" style={[styles.innerContainer, compact && styles.innerCompact]}>
+        <a href="/" style={{ textDecoration: 'none', marginRight: 'auto' }} aria-label="Hummonica home">
+          <View style={styles.brand}>
+            <HummonicaMark size={26} />
+            {!compact && <ThemedText style={styles.brandText}>Hummonica</ThemedText>}
+          </View>
+        </a>
         {props.children}
-
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
-          </Pressable>
-        </ExternalLink>
       </ThemedView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  hidden: {
+    display: 'none',
+  },
+  slot: {
+    flex: 1,
+  },
   tabListContainer: {
-    position: 'absolute',
     width: '100%',
     padding: Spacing.three,
     justifyContent: 'center',
@@ -99,30 +120,43 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
+    paddingLeft: Spacing.four,
+    paddingRight: Spacing.two,
+    borderRadius: 999,
     flexDirection: 'row',
     alignItems: 'center',
-    flexGrow: 1,
-    gap: Spacing.two,
+    width: '100%',
+    gap: Spacing.one,
     maxWidth: MaxContentWidth,
+    boxShadow: '0 1px 2px rgba(20, 19, 20, 0.08), 0 8px 24px -12px rgba(20, 19, 20, 0.25)',
+  },
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   brandText: {
-    marginRight: 'auto',
+    fontFamily: Fonts.displayBold,
+    fontSize: 18,
+    letterSpacing: -0.3,
   },
   pressed: {
     opacity: 0.7,
   },
   tabButtonView: {
-    paddingVertical: Spacing.one,
+    paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: 999,
   },
-  externalPressable: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: Spacing.one,
-    marginLeft: Spacing.three,
+  tabButtonCompact: {
+    paddingHorizontal: Spacing.two,
+  },
+  tabListCompact: {
+    padding: Spacing.two,
+  },
+  innerCompact: {
+    paddingLeft: Spacing.two,
+    paddingRight: Spacing.one,
+    gap: 0,
   },
 });

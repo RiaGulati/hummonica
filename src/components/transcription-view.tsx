@@ -77,8 +77,8 @@ export function TranscriptionView({ saved }: { saved: SavedTranscription }) {
         recordingUri={recording}
         actions={
           <>
-            {tab.entries.length > 0 && <ActionButton label="Save tab" onPress={() => setNaming(true)} />}
-            {recording && <ActionButton label="Share recording" onPress={share} />}
+            {tab.entries.length > 0 && <ActionButton secondary label="Save tab" onPress={() => setNaming(true)} />}
+            {recording && <ActionButton secondary label="Share recording" onPress={share} />}
           </>
         }
       />

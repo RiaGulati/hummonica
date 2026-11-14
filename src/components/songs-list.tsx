@@ -13,7 +13,7 @@ import { ActivityIndicator, Pressable, SectionList, StyleSheet, TextInput, View 
 import { ActionButton } from '@/components/action-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { OnlineTabSummary } from '@/songs/harmonica-com';
 import { SONG_LIBRARY, type LibrarySong } from '@/songs/library';
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.three,
   },
   search: {
+    fontFamily: Fonts.mono,
     fontSize: 17,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,

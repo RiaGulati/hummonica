@@ -24,25 +24,24 @@ const shot = (module: number) => Asset.fromModule(module).uri;
 const STEPS = [
   {
     title: 'Open Listen',
-    body: 'There are two buttons. Hum / Play listens for one note at a time: your voice, a whistle, or the harmonica itself. Song listens to recorded music and picks out the melody.',
-    tip: 'Your browser asks to use the microphone the first time. Say yes.',
+    body: 'There are two buttons. Hum / Play listens for one note at a time like your voice, a whistle, or the harmonica itself. Song listens to recorded music and picks out the melody.',
     image: shot(require('@/assets/landing/listen.webp')),
     imageNarrow: shot(require('@/assets/landing/listen-m.webp')),
     path: '/listen',
     alt: 'The Listen screen with a pitch meter and two buttons, Hum / Play and Song.',
   },
   {
-    title: 'Hum the tune',
+    title: 'Hum the tune / Play a song',
     body: 'Hum, sing or whistle, one note at a time. The meter shows the note you are making and the hole that plays it. Here, A5 is 6↓: breathe in on hole 6.',
-    tip: 'A quiet room helps. You get 30 seconds per recording.',
+    tip: 'A quiet room works best. You get 30 seconds per recording.',
     image: shot(require('@/assets/landing/listening.webp')),
     imageNarrow: shot(require('@/assets/landing/listening-m.webp')),
     path: '/listen',
     alt: 'Listening: the meter reads A5, 880 hertz, in tune, with the tab 6 draw. The Song button is greyed out while recording.',
   },
   {
-    title: 'Press Stop. That’s your tab.',
-    body: 'Every note becomes a hole and a direction: ↑ breathe out, ↓ breathe in. The bar under each note shows how long to hold it. Each recording is kept in History.',
+    title: 'When you click stop, your tab is generated',
+    body: 'Every note becomes a hole and a direction (↑ mean breathe out, ↓ means breathe in). The bar under each note shows how long to hold it. Each recording is kept in History.',
     tip: 'This one is the start of Twinkle, Twinkle: 4↑ 4↑ 6↑ 6↑ 6↓ 6↓ 6↑.',
     image: shot(require('@/assets/landing/result.webp')),
     imageNarrow: shot(require('@/assets/landing/result-m.webp')),
@@ -118,12 +117,12 @@ const SONGS = [
 ];
 
 const MARKS = [
-  { mark: '4↑', name: 'Blow', text: 'Breathe out through hole 4.' },
-  { mark: '4↓', name: 'Draw', text: 'Breathe in through hole 4.' },
-  { mark: "3↓'", name: 'Bend', text: "One ' per semitone lower." },
-  { mark: '✕', name: 'Not playable', text: 'This harmonica has no such note.' },
-  { mark: '▬', name: 'Length', text: 'Longer bar, longer note.' },
-  { mark: '|', name: 'Pause', text: 'Breathe; the phrase ends.' },
+  { mark: '4↑', name: 'Blow', text: 'Breathe out through hole 4' },
+  { mark: '4↓', name: 'Draw', text: 'Breathe in through hole 4' },
+  { mark: "3↓'", name: 'Bend', text: "One ' per semitone lower" },
+  { mark: '✕', name: 'Not playable', text: 'This harmonica has no such note' },
+  { mark: '▬', name: 'Length', text: 'Longer bar, longer note' },
+  { mark: '|', name: 'Pause', text: 'Take a breath :)' },
 ];
 
 const REASONS = [
@@ -330,9 +329,9 @@ export function LandingPage() {
           <div className="hero-panel">
             <div className="hero-panel-inner">
               <h1 id="hero-title">
-                Learn the song, <br className="br-wide" />
+                Just learn the song, <br className="br-wide" />
                 not the whole <br className="br-wide" />
-                harmonica.
+                harmonica
               </h1>
               <div className="hero-side">
                 <p className="lede">
@@ -348,11 +347,8 @@ export function LandingPage() {
                 </div>
                 <p className="trust">
                   <span className="chips" aria-hidden="true">
-                    <span className="chip">5↑</span>
-                    <span className="chip">5↓</span>
-                    <span className="chip">6↑</span>
+
                   </span>
-                  Ode to Joy: 30 notes, one&nbsp;evening.
                 </p>
               </div>
             </div>
@@ -365,8 +361,7 @@ export function LandingPage() {
               <p className="eyebrow">How it works</p>
               <h2 id="how-title">From a hum to a tab in two presses.</h2>
               <p className="band-lede">
-                You don’t need to read music. You need a C harmonica, the most common kind, and about ten minutes. Here is
-                everything the app does, in the order you’ll use it.
+                You don’t need to know how to read music. Just follow a basic guide on where the harmonica notes are and generate you're own sheet music. For a harmonica, the sheet music is called a tab.
               </p>
             </div>
             <Walkthrough />
@@ -382,11 +377,8 @@ export function LandingPage() {
             <div className="band-head split">
               <div>
                 <p className="eyebrow">Tabs</p>
-                <h2 id="tabs-title">Four intros to learn this week.</h2>
+                <h2 id="tabs-title">Some tabs generated from the app</h2>
               </div>
-              <p className="band-lede">
-                Short openings, typed into the app as tabs. Save your own the same way, or press Play to hear one first.
-              </p>
             </div>
             <div className="gallery">
               {[SONGS.filter((_, i) => i % 2 === 0), SONGS.filter((_, i) => i % 2 === 1)].map((column, c) => (
@@ -440,7 +432,7 @@ export function LandingPage() {
         <section id="why" className="band wrap why" tabIndex={-1} aria-labelledby="why-title">
           <div className="why-text">
             <p className="eyebrow">Why I built this</p>
-            <h2 id="why-title">For everyone who wants to play one song.</h2>
+            <h2 id="why-title">For anyone who wants to learn quickly</h2>
             <ol className="reasons">
               {REASONS.map((reason) => (
                 <li key={reason.lead}>
@@ -450,7 +442,7 @@ export function LandingPage() {
             </ol>
             <p className="why-roommate">
               <strong>Why a harmonica?</strong> I started with it for my roommate, who wanted to learn some easy harmonica
-              songs.
+              songs. I want to eventually expand it to other instruments.
             </p>
             <AppLink className="btn primary" href="/listen">
               Play your first song

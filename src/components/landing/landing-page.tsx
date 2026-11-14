@@ -136,15 +136,15 @@ const REASONS = [
   },
   {
     lead: 'So every song becomes a simple tab.',
-    text: 'Hummonica breaks songs down into plain harmonica tabs you can learn quickly, at your level: with or without bends, moved up or down an octave to fit.',
+    text: 'Hummonica breaks songs down into plain harmonica tabs you can learn quickly, at your level.',
   },
   {
     lead: 'No sheet music? Record it.',
-    text: 'The songs you actually want to play are often the hardest to find written down. Here you record it and get the tab straight away.',
+    text: 'The songs you actually want to play are often the hardest to find written down. Here you can record it and get the tab straight away.',
   },
   {
     lead: 'Or just hum.',
-    text: 'Hum / Play turns anything into tab: a tune stuck in your head, a ringtone, even an exclamation.',
+    text: 'Hum / Play turns anything into tab like a tune stuck in your head, a ringtone, or even an exclamation.',
   },
 ];
 

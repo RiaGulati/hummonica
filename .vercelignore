@@ -1,0 +1,8 @@
+# Not needed to build the website (Vercel runs `expo export -p web`).
+node_modules
+dist
+.expo
+ios
+android
+recordings
+.env*.local

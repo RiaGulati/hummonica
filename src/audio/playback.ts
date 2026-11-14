@@ -67,7 +67,7 @@ async function writeTabAudio(tab: Tab): Promise<{ uri: string; offset: number }>
   if (lastSynthFile?.exists) lastSynthFile.delete();
   const file = new File(Paths.cache, `tab-playback-${++synthCounter}.wav`);
   file.create({ overwrite: true });
-  file.write(encodeWav(samples, PLAYBACK_SAMPLE_RATE));
+  file.writeSync(encodeWav(samples, PLAYBACK_SAMPLE_RATE));
   lastSynthFile = file;
   return { uri: file.uri, offset };
 }

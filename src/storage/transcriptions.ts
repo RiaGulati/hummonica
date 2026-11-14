@@ -46,11 +46,11 @@ export function saveTranscription(
   if (recording) {
     const wav = wavFile(saved.id);
     wav.create({ overwrite: true });
-    wav.write(encodeWav(recording.samples, recording.sampleRate));
+    wav.writeSync(encodeWav(recording.samples, recording.sampleRate));
   }
   const json = jsonFile(saved.id);
   json.create({ overwrite: true });
-  json.write(JSON.stringify(saved));
+  json.writeSync(JSON.stringify(saved));
   return saved;
 }
 

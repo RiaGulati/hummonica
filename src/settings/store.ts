@@ -42,7 +42,7 @@ export function updateSettings(change: Partial<TabSettings>): void {
   try {
     const file = settingsFile();
     file.create({ overwrite: true });
-    file.write(JSON.stringify(current));
+    file.writeSync(JSON.stringify(current));
   } catch (error) {
     // The new setting still applies until the app is closed.
     console.warn('Could not save the settings', error);

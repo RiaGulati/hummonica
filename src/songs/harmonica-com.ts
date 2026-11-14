@@ -96,7 +96,7 @@ export async function fetchTabIndex(): Promise<OnlineTabSummary[]> {
     try {
       const file = indexFile();
       file.create({ overwrite: true });
-      file.write(JSON.stringify({ savedAt: Date.now(), items }));
+      file.writeSync(JSON.stringify({ savedAt: Date.now(), items }));
     } catch (error) {
       console.warn('Could not cache the harmonica.com list', error);
     }

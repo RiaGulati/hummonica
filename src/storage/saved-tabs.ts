@@ -23,7 +23,7 @@ function tabFile(id: string): File {
 function write(saved: SavedTab): void {
   const file = tabFile(saved.id);
   file.create({ overwrite: true });
-  file.write(JSON.stringify(saved));
+  file.writeSync(JSON.stringify(saved));
 }
 
 export function saveTab(input: NewSavedTab): SavedTab {

@@ -24,7 +24,7 @@ export async function shareRecording(saved: SavedTranscription): Promise<void> {
   const name = saved.title.replace(UNSAFE_CHARACTERS, ' ').trim() || 'recording';
   const copy = new File(folder, `${name}.wav`);
   copy.create({ overwrite: true });
-  copy.write(new File(uri).bytesSync());
+  copy.writeSync(new File(uri).bytesSync());
 
   await Sharing.shareAsync(copy.uri, {
     mimeType: 'audio/wav',

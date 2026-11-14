@@ -19,6 +19,8 @@ import { useTabSettings } from '@/settings/store';
 
 const ACCENT = '#208AEF';
 const STOP = '#E5484D';
+/** The other mode's button while recording: visible but not pressable. */
+const DISABLED = '#9BA1A6';
 
 const MODE_BUTTONS: { mode: TranscribeMode; label: string }[] = [
   { mode: 'voice', label: 'Hum / Play' },
@@ -49,18 +51,28 @@ export function ListenPanel() {
           <PitchMeter frame={livePitch} />
 
           <ThemedView style={styles.buttonRow}>
-            {MODE_BUTTONS.map((button) => (
-              <Pressable
-                key={button.mode}
-                accessibilityRole="button"
-                onPress={listening ? stop : () => start(button.mode)}
-                style={({ pressed }) => [
-                  styles.button,
-                  { backgroundColor: listening ? STOP : ACCENT, opacity: pressed ? 0.7 : 1 },
-                ]}>
-                <ThemedText style={styles.buttonText}>{listening ? 'Stop' : button.label}</ThemedText>
-              </Pressable>
-            ))}
+            {MODE_BUTTONS.map((button) => {
+              // While recording, the button that started it becomes Stop and the other is disabled.
+              const isStop = listening && mode === button.mode;
+              const disabled = listening && !isStop;
+              return (
+                <Pressable
+                  key={button.mode}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled }}
+                  disabled={disabled}
+                  onPress={isStop ? stop : () => start(button.mode)}
+                  style={({ pressed }) => [
+                    styles.button,
+                    {
+                      backgroundColor: isStop ? STOP : disabled ? DISABLED : ACCENT,
+                      opacity: disabled ? 0.5 : pressed ? 0.7 : 1,
+                    },
+                  ]}>
+                  <ThemedText style={styles.buttonText}>{isStop ? 'Stop' : button.label}</ThemedText>
+                </Pressable>
+              );
+            })}
           </ThemedView>
 
           {listening && (

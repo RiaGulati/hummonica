@@ -1,6 +1,6 @@
 /**
- * Microphone capture. Streams raw PCM samples from the mic (via expo-audio's
- * useAudioStream), feeds them to a pitch tracker as they arrive, and turns the
+ * Microphone capture. Streams raw PCM samples from the mic (via mic-stream.ts:
+ * expo-audio's useAudioStream on the phone, Web Audio in the browser), feeds them to a pitch tracker as they arrive, and turns the
  * collected frames into notes when the user stops.
  *
  * There are two modes:
@@ -18,10 +18,8 @@
  */
 
 import {
-  AudioModule,
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
-  useAudioStream,
   type AudioStreamBuffer,
 } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
@@ -36,6 +34,8 @@ import {
 } from '@/dsp';
 import { saveTranscription, type SavedTranscription } from '@/storage/transcriptions';
 
+import { isMicStreamingSupported, useMicStream } from './mic-stream';
+
 /** Recording stops automatically after this many seconds. */
 export const MAX_RECORDING_SECONDS = 30;
 
@@ -45,13 +45,8 @@ const REQUESTED_SAMPLE_RATE = 44100;
 /** Update the screen at most this often, so React is not re-rendering 86 times a second. */
 const UI_UPDATE_INTERVAL_MS = 66;
 
-/**
- * True when the installed native code supports mic streaming. Older builds of
- * Expo Go may not include it; in that case the app needs a development build.
- */
-// AudioModule is an object, not a namespace import, so this lint rule does not apply.
-// eslint-disable-next-line import/namespace
-export const isStreamingSupported = typeof AudioModule?.AudioStream === 'function';
+/** True when mic streaming works here (see mic-stream.ts). */
+export const isStreamingSupported = isMicStreamingSupported;
 
 export type CaptureStatus = 'idle' | 'listening' | 'permission-denied' | 'error';
 
@@ -168,7 +163,7 @@ export function useMelodyCapture() {
   const [mode, setMode] = useState<TranscribeMode>('voice');
   const session = useRef<CaptureSession | null>(null);
 
-  const { stream } = useAudioStream({
+  const { stream } = useMicStream({
     sampleRate: REQUESTED_SAMPLE_RATE,
     channels: 1,
     encoding: 'float32',

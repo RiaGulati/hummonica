@@ -44,3 +44,4 @@ example
 
 # Real test recordings (copyrighted music, kept local only)
 recordings/
+.vercel

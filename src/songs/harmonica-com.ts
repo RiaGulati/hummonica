@@ -14,8 +14,7 @@
  * If the phone is offline, the last downloaded list is used.
  */
 
-import { File, Paths } from 'expo-file-system';
-
+import { readIndexCacheText, writeIndexCacheText } from './index-cache';
 import {
   extractTabPage,
   parseArtists,
@@ -61,15 +60,11 @@ async function getAllPages(path: string, fields: string): Promise<unknown[]> {
   return [first, ...rest].flatMap((result) => (Array.isArray(result.data) ? result.data : []));
 }
 
-function indexFile(): File {
-  return new File(Paths.cache, 'harmonica-com-index.json');
-}
-
 function readCachedIndex(): { savedAt: number; items: OnlineTabSummary[] } | null {
   try {
-    const file = indexFile();
-    if (!file.exists) return null;
-    const cached = JSON.parse(file.textSync());
+    const text = readIndexCacheText();
+    if (text === null) return null;
+    const cached = JSON.parse(text);
     return Array.isArray(cached?.items) && typeof cached.savedAt === 'number' ? cached : null;
   } catch {
     return null;
@@ -94,9 +89,7 @@ export async function fetchTabIndex(): Promise<OnlineTabSummary[]> {
     const items = parseTabIndex(tabs, parseArtists(artists));
     memoryIndex = items;
     try {
-      const file = indexFile();
-      file.create({ overwrite: true });
-      file.writeSync(JSON.stringify({ savedAt: Date.now(), items }));
+      writeIndexCacheText(JSON.stringify({ savedAt: Date.now(), items }));
     } catch (error) {
       console.warn('Could not cache the harmonica.com list', error);
     }

@@ -6,8 +6,8 @@
  *     harmonica (sampler.ts), so you can hear what you are about to play. If
  *     the samples cannot be loaded, a synthesized reed voice (reed.ts) is
  *     used instead. The audio is generated in TypeScript, encoded as WAV
- *     (wav.ts) and written to the cache folder, because the audio player
- *     plays files.
+ *     (wav.ts) and handed to the player as a file (or a blob: URL on web),
+ *     because the audio player plays addresses; see playback-file.ts.
  *   - 'recording': the original recording, to compare the tab with what was
  *     actually heard.
  *
@@ -17,7 +17,6 @@
  */
 
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { File, Paths } from 'expo-file-system';
 import { useState } from 'react';
 
 import { renderReedNote } from '@/dsp/reed';
@@ -27,6 +26,7 @@ import { encodeWav } from '@/dsp/wav';
 import { entryIndexAt, type Tab } from '@/harmonica';
 
 import { loadHarmonicaSamples } from './harmonica-samples';
+import { storePlaybackWav } from './playback-file';
 
 export type PlaybackSource = 'tab' | 'recording';
 
@@ -34,10 +34,6 @@ export type PlaybackSource = 'tab' | 'recording';
 const PLAYBACK_SAMPLE_RATE = 44100;
 /** Silence before the first note, so playback does not start abruptly. */
 const LEAD_IN_SECONDS = 0.2;
-
-/** Each synthesized file gets a new name, so the player never reads a half-written file. */
-let synthCounter = 0;
-let lastSynthFile: File | null = null;
 
 /** The real harmonica samples, or the synthesized reed voice if they cannot be loaded. */
 async function harmonicaVoice(): Promise<NoteVoice> {
@@ -64,12 +60,7 @@ async function writeTabAudio(tab: Tab): Promise<{ uri: string; offset: number }>
   }));
   const samples = renderNotes(notes, PLAYBACK_SAMPLE_RATE, await harmonicaVoice());
 
-  if (lastSynthFile?.exists) lastSynthFile.delete();
-  const file = new File(Paths.cache, `tab-playback-${++synthCounter}.wav`);
-  file.create({ overwrite: true });
-  file.writeSync(encodeWav(samples, PLAYBACK_SAMPLE_RATE));
-  lastSynthFile = file;
-  return { uri: file.uri, offset };
+  return { uri: storePlaybackWav(encodeWav(samples, PLAYBACK_SAMPLE_RATE)), offset };
 }
 
 export function usePlayback(tab: Tab, recordingUri: string | null) {
